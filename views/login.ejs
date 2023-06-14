@@ -4,6 +4,8 @@
   <title>Login</title>
   <link rel="stylesheet" type="text/css" href="resources/css/login.css">
   <link rel="icon" href="resources/T islam logo.png" type="image/x-icon">
+  <script src="/resources/js/main.js"></script>
+
 </head>
 <body>
   <div class="container">
@@ -18,29 +20,6 @@
     <p>Don't have an account? <a href="/register">Register</a></p>
   </div>
   
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-
-      var username = document.getElementById("username").value;
-      var password = document.getElementById("password").value;
-
-      if (username && password) {
-        // Retrieve user data from local storage
-        var users = JSON.parse(localStorage.getItem("users")) || [];
-
-        // Check if the entered username and password match
-        var user = users.find(u => u.username === username && u.password === password);
-        if (user) {
-          // Redirect to the account page or any other authenticated page
-          window.location.href = "/home";
-        } else {
-          alert("Invalid username or password. Please try again.");
-        }
-      } else {
-        alert("Please enter a username and password.");
-      }
-    });
-  </script>
+  <script src="/resources/js/login.js"></script>
 </body>
 </html>

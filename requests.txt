@@ -32,7 +32,6 @@ parameters : {
 }
 
 STATUS 200 returns : {
-     userid,
      token // must be stored in local storage or in a cookie
 }
 STATUS 401 : Username already exists
@@ -88,7 +87,7 @@ returns : {
         messageid,
         content,
         sender,
-        receiver
+        receiver()
         // you can add whatever you like here
     }
 }

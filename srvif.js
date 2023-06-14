@@ -16,13 +16,14 @@ const db = require("mysql").createConnection({
 router.post("/login", (req, res) => {
     const username = req.body.user
     const password = req.body.password
+    console.log("login", username, password);
     if(!rbc(username) || !rbc(password)) {
         return DenyRequest(req, res)
     }
     if(!username.length || !password.length || username.length > 128 || password.length > 255) return DenyRequest(req, res);
 
 
-    db.query("SELECT * FROM users WHERE `username` = ? AND `password` = ?", [username, password], (err, dbres) => {
+    db.query("SELECT * FROM users WHERE `username` = ? AND `password` = ? LIMIT 1", [username, password], (err, dbres) => {
         if(err) throw err;
         if(!dbres.length) {
             res.status(401);
@@ -55,7 +56,7 @@ router.post("/register", (req, res) => {
         return DenyRequest(req, res)
     }
     if(!username.length || !password.length || username.length > 128 || password.length > 255) return DenyRequest(req, res);
-    db.query("SELECT * FROM users WHERE username = ?", [username], (err, dbres) => {
+    db.query("SELECT * FROM users WHERE username = ? LIMIT 1", [username], (err, dbres) => {
         if(err) throw err;
         if(dbres.length) {
             res.status(401);
@@ -69,9 +70,12 @@ router.post("/register", (req, res) => {
             console.log(dbres1);
             
             
-            res.status(200);
+            const token = uuidv4();
+            console.log(`generated token ${token} || length = ${token.length}`)
+            db.query("INSERT INTO `tokens` (`token`, `userid`) VALUES(?, ?)", [token, dbres1.insertId]);
 
-            res.json({userid: dbres1.insertId, token: "123"});
+            res.status(200)
+            res.json({token});
         });
     })
 })
@@ -266,4 +270,4 @@ setInterval(() => {
 
 
 
-module.exports = router;
+module.exports = {router, db};
