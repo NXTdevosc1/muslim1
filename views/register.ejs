@@ -11,8 +11,24 @@
     <form id="registerForm">
       <label for="username">Username:</label>
       <input type="text" id="username" required>
+       
       <label for="password">Password:</label>
       <input type="password" id="password" required>
+      
+      <label for="Birthdate">Birthdate:</label>
+      <input type="date" id="Birthdate" required>
+      
+      <label for="gender" class="gender-label">Gender</label>
+      <div class="gender-select-container">
+      <select id="gender" name="gender" required class="gender-select">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      </select>
+      </div>
+
+      <label for="profile-picture">Profile Picture</label>
+      <input type="file" id="profile-picture" name="profile-picture">
+
       <button type="submit">Register</button>
     </form>
     <p>Already have an account? <a href="/login">Login</a></p>
