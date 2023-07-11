@@ -26,9 +26,14 @@ try {
 
 console.log("cookies:", cookies, "token", cookies.token);
 
+
+var Socket = null;
+
+MessageWait = false;
+
 if(cookies.token) {
     
-    let Socket = new WebSocket("ws://localhost:5000");
+    Socket = new WebSocket("ws://localhost:5000");
     
     Socket.onopen = ((ev) => {
         console.log("OPEN", (ev));
@@ -68,4 +73,33 @@ if(cookies.token) {
         document.location.reload();
     })
 
+
+
 }
+
+function __Request(Request, Body, Callback) {
+    fetch(`/if/${Request}`, { method: "POST", headers: { accept: "application/json", "content-type":"application/json" }, body: JSON.stringify(Body) }).then((res) => {
+        if (res.status != 200) throw `[${Request}] Request failed.`;
+
+        return res.json();
+    })
+        .then((res) => {
+            Callback(res);
+        }).catch((err) => {
+            throw err;
+        })
+
+}
+
+
+/*
+ * THIS IS THE EXAMPLE OF READING THE CHAT LIST
+ * */
+__Request("chats", { token: cookies.token }, (res) => {
+    console.log("Number of open chats:", res.NumChats);
+    for (let i = 0; i < res.NumChats; i++) {
+        __Request("userinfo", { token: cookies.token, userid: res.Users[i] }, (res) => {
+            console.log(res);
+        })
+    }
+})

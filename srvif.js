@@ -176,26 +176,19 @@ router.post("/chats", (req, res) => {
             return;
         }
         const requserid = dbres[0].userid;
-        db.query("SELECT * FROM `messages` WHERE sender = ? OR receiver = ?", [requserid, requserid], (err, dbres1) => {
-            if(err) throw err;
-            var userarray = [];
+        db.query("SELECT * FROM `chats` WHERE InitiatorUserId = ? OR ReceiverUserId = ?", [requserid, requserid], (err, dbres1) => {
+            if (err) throw err;
+            var ret = {
+                NumChats: dbres1.length, Users: []
+            };
 
-            for(var i = 0;i<dbres1.length;i++) {
-                const msg = dbres1[i];
-                var uid;
+            for (var i = 0; i < dbres1.length; i++) {
+                const uid = dbres1[i].InitiatorUserId == requserid ? dbres1[i].ReceiverUserId : dbres1[i].InitiatorUserId;
 
-                if(msg.sender == requserid) uid = msg.receiver;
-                else uid = msg.sender;
-                
-                console.log(`message ${uid}`)
-                if(!userarray.includes(uid)){
-                    
-                    console.log(`including message from userid ${uid}`);
-                    userarray.push(uid);
-                } 
+                ret.Users.push(uid);
             }
             res.status(200);
-            res.json({NumChats: userarray.length, Users: userarray});
+            res.json(ret);
         })
     })
 })
