@@ -155,9 +155,24 @@ router.post("/send", (req, res) => {
                 return;
             }
             db.query("INSERT INTO `messages` (content, sender, receiver) VALUES(?, ?, ?)", [message, requserid, userid], (err, dbres2) => {
-                if(err) throw err;
-                res.status(200);
-                res.send("OK");
+                if (err) throw err;
+                // Initiate a chat if it doesn't exist
+                db.query("SELECT * FROM chats WHERE (InitiatorUserId = ? AND ReceiverUserId = ?) OR (InitiatorUserId = ? AND ReceiverUserId = ?)", [requserid, userid, userid, requserid], (err, dbres3) => {
+                    if (err) throw err;
+                    if (!dbres3.length) {
+                        db.query("INSERT INTO chats (InitiatorUserId, ReceiverUserId, LastMessage) VALUES(?,?)", [requserid, userid, message], (err, dbres4) => {
+                            res.status(200);
+                            res.json({ Status: "OK" });
+                        })
+                    } else {
+                        db.query("UPDATE chats SET LastMessage = ? WHERE ID = ?", [message, dbres3[0].ID], (err, dbres4) => {
+                            if (err) throw err;
+                            res.status(200);
+                            res.json({ Status: "OK" });
+
+                        })
+                    }
+                })
             })
         })
     })
@@ -185,7 +200,7 @@ router.post("/chats", (req, res) => {
             for (var i = 0; i < dbres1.length; i++) {
                 const uid = dbres1[i].InitiatorUserId == requserid ? dbres1[i].ReceiverUserId : dbres1[i].InitiatorUserId;
 
-                ret.Users.push(uid);
+                ret.Users.push({ userid: uid, lastmessage: dbres1[i].LastMessage });
             }
             res.status(200);
             res.json(ret);
@@ -197,18 +212,19 @@ router.post("/chats", (req, res) => {
 router.post("/userinfo", (req, res) => {
     const token = req.body.token;
     const userid = req.body.userid;
-    if(typeof token != "string" || token.length != 36) return DenyRequest(req, res);
+    if(typeof token != "string" || token.length != 36 || typeof userid != 'number') return DenyRequest(req, res);
     db.query("SELECT * FROM `tokens` WHERE token = ?", [token], (err, dbres) => {
        if(err) throw err;
        if(!dbres.length) {
         res.status(401);
         res.send("Unauthorized");
-       } 
-       db.query("SELECT * FROM `users` WHERE userid = ?", [dbres[0].userid], (err, dbres1) => {
+        }
+        if (!userid) userid = dbres[0].userid;
+       db.query("SELECT * FROM `users` WHERE userid = ?", [userid], (err, dbres1) => {
            
            const user = dbres1[0];
            res.status(200);
-           res.json({userid: user.userid, username: user.username, joindate: user.joindate});
+           res.json({ userid: user.userid, username: user.username, flags: user.flags, joindate: user.joindate});
        })
     })
     

@@ -5,6 +5,7 @@ const MESSAGE_CONNECT = 0
 const MESSAGE_SEND = 1
 const MESSAGE_NOTIFY = 2
 const MESSAGE_DISCONNECT = 3
+const MESSAGE_MESSAGELIST = 4
 
 const parseCookie = str =>
   str
@@ -31,6 +32,17 @@ var Socket = null;
 
 MessageWait = false;
 
+function PushMessage(userid, message) {
+    const chatmessages = document.getElementById("chatmsgs");
+    console.log("Rendering Message", userid, message);
+    chatmessages.innerHTML += `
+<div class="message">
+                    <p class="message-sender">${userid == currentuser.userid ? currentuser.username : 'You'}</p>
+                    <p class="message-content">${message}</p>
+                </div>
+`
+}
+
 if(cookies.token) {
     
     Socket = new WebSocket("ws://localhost:5000");
@@ -41,7 +53,8 @@ if(cookies.token) {
     })
     
     Socket.onmessage = ((ev) => {
-        const data = JSON.parse(ev);
+        const data = JSON.parse(ev.data);
+        console.log("Socket message", data);
         switch(data.Message) {
             case MESSAGE_NOTIFY:
                 {
@@ -54,6 +67,14 @@ if(cookies.token) {
                     document.cookie = '';
                     document.location.reload();
                     break;
+                }
+            case MESSAGE_MESSAGELIST:
+                {
+                    document.getElementById("chatmsgs").innerHTML = '';
+                    // Render the message list
+                    for (var i = 0; i < data.NumMessages; i++) {
+                        PushMessage(data.Messages[i].sender, data.Messages[i].content);
+                    }
                 }
         }
         if(data.Message == MESSAGE_DISCONNECT) {
@@ -90,16 +111,3 @@ function __Request(Request, Body, Callback) {
         })
 
 }
-
-
-/*
- * THIS IS THE EXAMPLE OF READING THE CHAT LIST
- * */
-__Request("chats", { token: cookies.token }, (res) => {
-    console.log("Number of open chats:", res.NumChats);
-    for (let i = 0; i < res.NumChats; i++) {
-        __Request("userinfo", { token: cookies.token, userid: res.Users[i] }, (res) => {
-            console.log(res);
-        })
-    }
-})

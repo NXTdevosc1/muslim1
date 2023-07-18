@@ -10,31 +10,23 @@
     <link rel="stylesheet" type="text/css" href="resources/css/home.css">
     <script src="/resources/js/main.js"></script>
   </head>
-<body>   
-  
-  <footer>
-    <div class="icons">
-        <a href="/home"><i class="fas fa-home"></i></a>
-        <a href="/Contact"><i class="fas fa-calendar"></i></a>
-        <a href="/settings"><i class="fas fa-cog"></i></a>
-        <a href="/support"><i class="fas fa-question-circle"></i></a>
-        <a href="/logout" id="logoutButton"><i class="fas fa-sign-out-alt"></i></a>
-    </div>
-</footer>
+<body>
+
+    <%-Navbar%>
 
     <main>
-      
-      
-     <!-- <div class="search-bar">
-       <input type="text" class="search-input" placeholder="Search">
-       <button class="search-button">
-         <i class="fas fa-search"></i>
-        </button>
-      </div>
-    -->
-    
-    <h1 style="text-align: center;">Home</h1>
-  </main>
-  <h1>Hello ! <%=user.username%></h1>
+
+
+        <!-- <div class="search-bar">
+           <input type="text" class="search-input" placeholder="Search">
+           <button class="search-button">
+             <i class="fas fa-search"></i>
+            </button>
+          </div>
+        -->
+
+        <h1 style="text-align: center;">Home</h1>
+    </main>
+    <h1>Hello ! <%=user.username%></h1>
 </body>
 </html>

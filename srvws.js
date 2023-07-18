@@ -8,7 +8,7 @@ const MESSAGE_CONNECT = 0
 const MESSAGE_SEND = 1
 const MESSAGE_NOTIFY = 2
 const MESSAGE_DISCONNECT = 3
-const MESSAGE_CONTACTLIST = 4
+const MESSAGE_MESSAGELIST = 4
 const MAX_MESSAGE = 4
 
 const { v4: uuidv4 } = require('uuid');
@@ -53,8 +53,14 @@ wss.on("connection", (ws) => {
             case MESSAGE_SEND: {
                 break;
             }
-            case MESSAGE_CONTACTLIST: {
+            case MESSAGE_MESSAGELIST: {
+                if (typeof Packet.userid != 'number') ws.close();
                 console.log("Contact list");
+                db.query("SELECT * FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)", [userdata.user.userid, Packet.userid, Packet.userid, userdata.user.userid], (err, msgres) => {
+                    if (err) throw err;
+
+                    ws.send(JSON.stringify({ Message: MESSAGE_MESSAGELIST, NumMessages: msgres.length, Messages: [msgres][0] }));
+                })
                 break;
             }
             case MESSAGE_NOTIFY: {

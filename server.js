@@ -25,10 +25,14 @@ app.use(cookies.express("a","b","c"))
 
 app.use("/if", srvif.router);
 
+const fs = require("fs");
+
+const Navbar = fs.readFileSync("views/navbar.ejs", "utf-8");
 
 app.use((req, res, next) => {
     if(req.method == 'GET')  {
         const token = req.cookies.get('token');
+        res.locals.Navbar = Navbar;
         if(typeof token != 'string' || token.length != 36) {
             res.locals.user = null;
             req.cookies.set('token', null);
