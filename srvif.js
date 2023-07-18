@@ -13,6 +13,11 @@ const db = require("mysql").createConnection({
     charset: process.env.dbcharset
 })
 
+module.exports = { router, db };
+
+const { clients } = require("./srvws")
+
+
 router.post("/login", (req, res) => {
     const username = req.body.user
     const password = req.body.password
@@ -131,6 +136,19 @@ router.post("/messages", (req, res) => {
    }
    returns STATUS (200 for OK) otherwise the request has failed
 */
+
+const MESSAGE_NOTIFY = 2;
+
+function SignalMessage(requid, userid, message, msgid) {
+
+    clients.forEach((client) => {
+        if (client.user && client.user.userid == userid) {
+            client.Socket.send(JSON.stringify({ Message: MESSAGE_NOTIFY, userid: requid, content: message, messageid: msgid}));
+            console.log("Signal msg : ", client.connectionid, client.user);
+        } 
+    })
+}
+
 router.post("/send", (req, res) => {
     const token = req.body.token;
     const userid = req.body.userid;
@@ -166,9 +184,13 @@ router.post("/send", (req, res) => {
                         })
                     } else {
                         db.query("UPDATE chats SET LastMessage = ? WHERE ID = ?", [message, dbres3[0].ID], (err, dbres4) => {
+
+                            
                             if (err) throw err;
+                            // Signal the message
+                            SignalMessage(requserid, userid, message, dbres2.insertId);
                             res.status(200);
-                            res.json({ Status: "OK" });
+                            res.json({ messageid: dbres2.insertId });
 
                         })
                     }
@@ -279,4 +301,3 @@ setInterval(() => {
 
 
 
-module.exports = {router, db};

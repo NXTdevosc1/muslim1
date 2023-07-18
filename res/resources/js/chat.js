@@ -1,6 +1,11 @@
-
-const ctlist = document.getElementById("ctlist");
+var currentuser = null;
+var __oc = false;
+    const ctlist = document.getElementById("ctlist");
 const chatwnd = document.getElementById("chatwnd");
+function onConnect() {
+    if (__oc) return;
+    __oc = true;
+
 
 __Request("chats", { token: cookies.token }, (res) => {
     console.log("Number of open chats:", res.NumChats);
@@ -22,9 +27,33 @@ __Request("chats", { token: cookies.token }, (res) => {
     }
 })
 
-var currentuser = null;
+
+
+
+
+}
+
+function send() {
+    const messageinput = document.getElementById("messageinput");
+    const text = messageinput.value;
+    if (!text.length) return;
+    messageinput.value = '';
+    messageinput.focus();
+    console.log("Sending", text, "to user id", currentuser.userid);
+    const mid = generateRandomId();
+    PushMessage(currentuser.userid, text, mid);
+    __Request("send", { token: cookies.token, userid: currentuser.userid, message: text }, (res) => {
+        const m = document.getElementById(`msg${mid}`);
+        m.id = `msg${res.messageid}`;
+        m.classList.remove("awaiting");
+        console.log("response", res);
+    })
+}
+
 
 function RenderChat(user) {
+    Inchat = true;
+    msginc = 0;
     if (!currentuser || currentuser.userid != user.userid) {
         currentuser = user;
     } else return; // no need to render for the same user
@@ -44,19 +73,12 @@ function RenderChat(user) {
     </div>
 `
 
-    
+
     Socket.send(JSON.stringify({ Message: MESSAGE_MESSAGELIST, userid: user.userid }));
 }
 
-function send() {
-    const messageinput = document.getElementById("messageinput");
-    const text = messageinput.value;
-    if (!text.length) return;
-    messageinput.value = '';
-    messageinput.focus();
-    console.log("Sending", text, "to user id", currentuser.userid);
-
-    __Request("send", { token: cookies.token, userid: currentuser.userid, message: text }, (res) => {
-        console.log("response", res);
-    })
-}
+document.addEventListener('keydown', (ev) => {
+    if (ev.keyCode == 13) {
+        send();
+    }
+})

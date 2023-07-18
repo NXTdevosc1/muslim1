@@ -1,4 +1,5 @@
 const websocket = require('ws')
+const clients = new Map();
 const {db} = require("./srvif")
 const wss = new websocket.Server({
     port: 5000
@@ -9,29 +10,32 @@ const MESSAGE_SEND = 1
 const MESSAGE_NOTIFY = 2
 const MESSAGE_DISCONNECT = 3
 const MESSAGE_MESSAGELIST = 4
-const MAX_MESSAGE = 4
+const MESSAGE_UPDATEUSER = 5
+const MAX_MESSAGE = 5
 
 const { v4: uuidv4 } = require('uuid');
-
-const clients = new Map();
 
 
 
 
 wss.on("connection", (ws) => {
     console.log("Socket connection");
-    const id = uuidv4();
+    const connectionid = uuidv4();
     const userdata = {
-        connectionid: id,
+        connectionid: connectionid,
         user: undefined,
         NumMessages: 0,
+        Socket: ws
     };
-    clients.set(ws, userdata);
+    clients.set(connectionid, userdata);
+
+    console.log("Connection id", connectionid);
 
     ws.on("close", (code, reason) => {
-        clients.delete(ws);
+        clients.delete(connectionid);
         console.log("Connection closed.");
     })
+
     function HandleClientMessage(Message) {
         userdata.NumMessages++;
         var Packet;
@@ -98,7 +102,8 @@ wss.on("connection", (ws) => {
             } else {
                 db.query("SELECT * FROM `users` WHERE userid = ?", [dbres[0].userid], (err, dbres1) => {
                     userdata.user = dbres1[0];
-                    console.log("socket connection successfull, userdata :", userdata);
+                    console.log("socket connection successfull, userdata, connid :", userdata.user, userdata.connectionid);
+                    ws.send(JSON.stringify({ Message: MESSAGE_UPDATEUSER, user: { userid: userdata.user.userid, username: userdata.user.username } }));
                     ws.off("message", HandleTokenConnection);
                     ws.on("message", HandleClientMessage);
                 })
@@ -119,4 +124,6 @@ wss.on("error", (ws) => {
     console.log("Socket error");
     throw ws;
 })
+
+module.exports = { clients };
 

@@ -6,6 +6,7 @@ const MESSAGE_SEND = 1
 const MESSAGE_NOTIFY = 2
 const MESSAGE_DISCONNECT = 3
 const MESSAGE_MESSAGELIST = 4
+const MESSAGE_UPDATEUSER = 5
 
 const parseCookie = str =>
   str
@@ -30,18 +31,21 @@ console.log("cookies:", cookies, "token", cookies.token);
 
 var Socket = null;
 
-MessageWait = false;
+var Inchat = false;
 
-function PushMessage(userid, message) {
+
+function PushMessage(userid, message, msgid) {
     const chatmessages = document.getElementById("chatmsgs");
     console.log("Rendering Message", userid, message);
     chatmessages.innerHTML += `
-<div class="message">
+<div class="message awaiting" id="msg${msgid}">
                     <p class="message-sender">${userid == currentuser.userid ? currentuser.username : 'You'}</p>
                     <p class="message-content">${message}</p>
                 </div>
 `
 }
+
+var userdata = null;
 
 if(cookies.token) {
     
@@ -55,9 +59,19 @@ if(cookies.token) {
     Socket.onmessage = ((ev) => {
         const data = JSON.parse(ev.data);
         console.log("Socket message", data);
-        switch(data.Message) {
+        switch (data.Message) {
+            case MESSAGE_UPDATEUSER:
+                {
+                    userdata = data.user;
+                    onConnect();
+                    break;
+                }
             case MESSAGE_NOTIFY:
                 {
+                    if (Inchat && currentuser.userid == data.userid) {
+                        PushMessage(data.userid, data.content, data.messageid);
+                        document.getElementById(`msg${data.messageid}`).classList.remove("awaiting");
+                    }
                     console.log("Notify:", data);
                     break;
                 }
@@ -73,7 +87,8 @@ if(cookies.token) {
                     document.getElementById("chatmsgs").innerHTML = '';
                     // Render the message list
                     for (var i = 0; i < data.NumMessages; i++) {
-                        PushMessage(data.Messages[i].sender, data.Messages[i].content);
+                        PushMessage(data.Messages[i].sender, data.Messages[i].content, data.Messages[i].messageid);
+                        document.getElementById(`msg${data.Messages[i].messageid}`).classList.remove("awaiting");
                     }
                 }
         }
@@ -111,3 +126,4 @@ function __Request(Request, Body, Callback) {
         })
 
 }
+

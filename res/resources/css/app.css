@@ -166,6 +166,10 @@ footer {
   margin-bottom: 10px;
 }
 
+    .message.awaiting .message-content {
+        color: #9CAAB4;
+    }
+
 .message-sender {
 font-size: 12px;
 color: #999;
