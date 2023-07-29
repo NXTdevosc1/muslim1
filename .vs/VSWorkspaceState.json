@@ -3,9 +3,10 @@
     "",
     "\\res",
     "\\res\\resources",
+    "\\res\\resources\\css",
     "\\res\\resources\\js",
     "\\views"
   ],
-  "SelectedNode": "\\res\\resources\\js\\main.js",
+  "SelectedNode": "\\srvif.js",
   "PreviewInSolutionExplorer": false
 }
